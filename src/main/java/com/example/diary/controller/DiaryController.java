@@ -41,7 +41,7 @@ public class DiaryController {
         return ResponseEntity.ok(responses);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<DiaryResponse> updateDiary(
             @PathVariable Long id,
             @Valid @RequestBody DiaryUpdateRequest request) {

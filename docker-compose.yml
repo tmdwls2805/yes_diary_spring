@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # MySQL 데이터베이스
+  mysql:
+    image: mysql:8.0
+    container_name: diary-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: diary_db
+      MYSQL_USER: diary_user
+      MYSQL_PASSWORD: diary_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - diary-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot 애플리케이션
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: diary-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/diary_db
+      SPRING_DATASOURCE_USERNAME: diary_user
+      SPRING_DATASOURCE_PASSWORD: diary_password
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - diary-network
+
+volumes:
+  mysql-data:
+
+networks:
+  diary-network:
+    driver: bridge

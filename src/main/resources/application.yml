@@ -3,24 +3,19 @@ spring:
     name: yes-diary-spring
   
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: password
-  
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  
+    url: jdbc:mysql://localhost:3306/diary_db
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: diary_user
+    password: diary_password
+
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
 server:
   port: 8080
