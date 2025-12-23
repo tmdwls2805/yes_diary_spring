@@ -202,4 +202,42 @@ public class AuthService {
         TokenResponse.UserInfo userInfo = new TokenResponse.UserInfo(savedUser);
         return new TokenResponse(accessToken, refreshToken, userInfo);
     }
+
+    /**
+     * FCM 토큰 업데이트
+     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     */
+    @Transactional
+    public FcmTokenResponse updateFcmToken(String authHeader, FcmTokenRequest request) {
+        // 1. JWT 토큰에서 userId 추출
+        Long userId = jwtService.getUserIdFromAuthHeader(authHeader);
+
+        // 2. 유저 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다"));
+
+        // 3. FCM 토큰 업데이트
+        user.updateFcmToken(request.getFcmToken());
+        User savedUser = userRepository.save(user);
+
+        log.info("FCM 토큰 업데이트 완료: userId={}, fcmToken={}", userId, request.getFcmToken());
+
+        return new FcmTokenResponse(savedUser.getFcmToken());
+    }
+
+    @Transactional
+    public void logout(String authHeader){
+        // 1. JWT 토큰에서 userId 추출
+        Long userId = jwtService.getUserIdFromAuthHeader(authHeader);
+
+        // 2. 유저 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다"));
+    
+        // 3. FCM 토큰 초기화
+        user.updateFcmToken(null);
+        userRepository.save(user);
+
+        log.info("로그아웃 완료: userId={}", userId);
+    }
 }

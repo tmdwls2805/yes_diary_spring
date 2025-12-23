@@ -72,4 +72,28 @@ public class AuthController {
         TokenResponse response = authService.registerAndLoginAppleUser(request);
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * FCM 토큰 업데이트
+     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     *
+     * POST /api/auth/fcm
+     * Header: Authorization: Bearer {accessToken}
+     */
+    @PostMapping("/fcm")
+    public ResponseEntity<FcmTokenResponse> updateFcmToken(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody FcmTokenRequest request) {
+
+        FcmTokenResponse response = authService.updateFcmToken(authHeader, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+        @RequestHeader("Authorization") String authHeader   
+    ) {
+        authService.logout(authHeader);
+        return ResponseEntity.ok().build();
+    }
 }

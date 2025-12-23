@@ -15,4 +15,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 중복 체크
     boolean existsBySocialIdAndProvider(String socialId, SocialProvider provider);
+
+    Optional<User> findById(Long id);
 }

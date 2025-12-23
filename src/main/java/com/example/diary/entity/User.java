@@ -28,19 +28,24 @@ public class User extends Base {
     @Column(unique = true, length = 200)
     private String socialId;  // 소셜 로그인 고유 ID
 
+    @Column()
+    private String fcmToken;
+
     @Builder
-    public User(String nickname,
-                SocialProvider provider,
-                String socialId) {
+    public User(String nickname, SocialProvider provider, String socialId, String fcmToken) {
         super();
         this.nickname = nickname;
         this.provider = provider;
         this.socialId = socialId;
+        this.fcmToken = fcmToken;
     }
 
-    // 업데이트 메서드
     public void updateNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 
 }
