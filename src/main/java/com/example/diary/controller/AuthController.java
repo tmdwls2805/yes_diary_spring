@@ -89,11 +89,50 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * 로그아웃
+     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     *
+     * POST /api/auth/logout
+     * Header: Authorization: Bearer {accessToken}
+     */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
         @RequestHeader("Authorization") String authHeader   
     ) {
         authService.logout(authHeader);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 토큰 갱신
+     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     *
+     * POST /api/auth/token/refresh
+     * Header: Authorization: Bearer {accessToken}
+     */
+    @PostMapping("/token/refresh")
+    public ResponseEntity<TokenRefreshResponse> refreshToken(
+        @RequestHeader("Authorization") String authHeader,
+        @RequestBody TokenRefreshRequest request
+    ) {
+        TokenRefreshResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 토큰 검증
+     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     *
+     * POST /api/auth/token/verify
+     * Header: Authorization: Bearer {accessToken}
+     */
+    @PostMapping("/token/verify")
+    public ResponseEntity<TokenVerifyResponse> verifyToken(
+        @RequestHeader("Authorization") String authHeader,
+        @RequestBody TokenVerifyRequest request
+    ) {
+        TokenVerifyResponse response = authService.verifyToken(request);
+        return ResponseEntity.ok(response);
     }
 }

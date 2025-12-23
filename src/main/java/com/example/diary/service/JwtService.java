@@ -61,4 +61,34 @@ public class JwtService {
         String token = authHeader.substring(7);  // "Bearer " 제거
         return getUserIdFromToken(token);
     }
+
+    /**
+     * Refresh Token에서 userId 추출
+     * (Access Token과 동일한 방식으로 파싱)
+     */
+    public Long getUserIdFromRefreshToken(String refreshToken) {
+        return getUserIdFromToken(refreshToken);
+    }
+
+    /**
+     * JWT 토큰의 남은 유효 시간(초) 반환
+     */
+    public Long getRemainingSeconds(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header");
+        }
+
+        String token = authHeader.substring(7);  // "Bearer " 제거
+
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+
+        Date expiration = claims.getExpiration();
+        Date now = new Date();
+
+        long remainingMillis = expiration.getTime() - now.getTime();
+        return remainingMillis / 1000;  // 밀리초 → 초 변환
+    }
 }

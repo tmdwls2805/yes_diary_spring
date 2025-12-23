@@ -225,6 +225,10 @@ public class AuthService {
         return new FcmTokenResponse(savedUser.getFcmToken());
     }
 
+    /**
+     * 로그아웃
+     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     */
     @Transactional
     public void logout(String authHeader){
         // 1. JWT 토큰에서 userId 추출
@@ -239,5 +243,51 @@ public class AuthService {
         userRepository.save(user);
 
         log.info("로그아웃 완료: userId={}", userId);
+    }
+
+    /**
+     * 토큰 갱신
+     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     */
+    @Transactional
+    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+        try {
+            // 1. Refresh Token 검증
+            Long userId = jwtService.getUserIdFromRefreshToken(request.getRefreshToken());
+
+            // 2. 유저 확인
+            userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다"));
+
+            // 3. 토큰 갱신
+            String accessToken = jwtService.generateAccessToken(userId);
+            String refreshToken = jwtService.generateRefreshToken(userId);
+            return new TokenRefreshResponse(accessToken, refreshToken);
+        } catch (Exception e) {
+            log.error("Refresh Token 검증 실패: {}", e.getMessage());
+            throw new IllegalArgumentException("Refresh Token 검증 실패");
+        }
+    }
+
+    /**
+     * 토큰 검증
+     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     */
+    @Transactional
+    public TokenVerifyResponse verifyToken(String authHeader) {
+        try {
+            // 1. JWT 토큰에서 userId 추출
+            Long userId = jwtService.getUserIdFromAuthHeader(authHeader);
+
+            // 2. 유저 확인
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다"));
+
+            // 3. 토큰 검증
+            return new TokenVerifyResponse(true, userId, jwtService.getRemainingSeconds(authHeader));
+        } catch (Exception e) {
+            log.error("Access Token 검증 실패: {}", e.getMessage());
+            throw new IllegalArgumentException("Access Token 검증 실패");
+        }
     }
 }
