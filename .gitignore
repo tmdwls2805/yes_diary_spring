@@ -80,3 +80,6 @@ target/
 # Application specific
 application-local.yml
 application-dev.yml
+
+
+.env

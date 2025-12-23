@@ -1,7 +1,7 @@
 spring:
   application:
     name: yes-diary-spring
-  
+
   datasource:
     url: jdbc:mysql://localhost:3306/diary_db
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,6 +16,16 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+# JWT 설정
+jwt:
+  secret: my-secret-key-for-jwt-token-generation-minimum-512-bits-long-for-hs512-algorithm
+  access-token-validity: 3600000      # 1시간 (밀리초)
+  refresh-token-validity: 1209600000  # 14일 (밀리초)
+
+# Apple 로그인 설정
+apple:
+  client-id: com.example.diary  # Apple Developer Console의 Bundle ID 또는 Service ID
 
 server:
   port: 8080

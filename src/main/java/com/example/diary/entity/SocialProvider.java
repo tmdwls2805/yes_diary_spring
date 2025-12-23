@@ -5,8 +5,7 @@ package com.example.diary.entity;
  */
 public enum SocialProvider {
     APPLE("애플"),
-    KAKAO("카카오"),
-    LOCAL("일반 회원");  // 소셜 로그인이 아닌 일반 회원가입
+    KAKAO("카카오");
 
     private final String description;
 
