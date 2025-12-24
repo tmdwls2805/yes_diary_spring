@@ -3,8 +3,13 @@ package com.example.diary.controller;
 import com.example.diary.dto.*;
 import com.example.diary.service.DiaryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @RestController
 @RequestMapping("/api/diaries")
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class DiaryController {
 
     private final DiaryService diaryService;
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     /**
      * 일기 생성
@@ -81,20 +87,35 @@ public class DiaryController {
     }
 
     /**
-     * 로컬 일기 동기화
+     * 로컬 일기 동기화 (SSE 진행률 포함)
      * POST /api/diaries/sync
      * Header: Authorization: Bearer {accessToken}
+     * Content-Type: application/json
      *
-     * 로그인 시 로컬에 저장된 일기들을 서버와 동기화
+     * 로그인 시 로컬에 저장된 일기들을 서버와 동기화하며 실시간 진행률을 SSE로 전송
+     *
+     * 동기화 규칙:
      * - 로컬에 일기 있음 + 서버에 같은 날짜 일기 있음 → 로컬 데이터로 서버 덮어쓰기
      * - 로컬에 일기 있음 + 서버에 해당 날짜 일기 없음 → 로컬 데이터를 서버에 새로 생성
      * - 동기화 후 서버의 모든 일기를 반환 (클라이언트는 이를 로컬 DB에 저장)
+     *
+     * SSE 이벤트 형식:
+     * - event: sync-progress
+     * - data: { "status": "progress", "percentage": 50, "current": 5, "total": 10, "message": "5/10 처리 완료" }
+     * - 완료 시: { "status": "completed", "percentage": 100, "result": {...} }
      */
-    @PostMapping("/sync")
-    public ResponseEntity<DiarySyncResponse> syncDiaries(
+    @PostMapping(value = "/sync", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter syncDiaries(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody DiarySyncRequest request) {
-        DiarySyncResponse response = diaryService.syncDiaries(authHeader, request);
-        return ResponseEntity.ok(response);
+
+        SseEmitter emitter = new SseEmitter(300000L); // 5분 타임아웃
+
+        // 비동기로 동기화 실행
+        executorService.execute(() -> {
+            diaryService.syncDiariesWithProgress(authHeader, request, emitter);
+        });
+
+        return emitter;
     }
 }

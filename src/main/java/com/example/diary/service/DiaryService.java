@@ -12,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -186,8 +189,8 @@ public class DiaryService {
     }
 
     /**
-     * 로컬 일기 동기화
-     * 로그인 시 로컬에 저장된 일기들을 서버와 동기화
+     * 로컬 일기 동기화 (SSE 진행률 포함)
+     * 실시간으로 동기화 진행률(%)을 전송
      *
      * 동기화 규칙:
      * 1. 로컬에 일기 있음 + 서버에 같은 날짜 일기 있음 → 로컬 데이터로 서버 덮어쓰기
@@ -195,59 +198,94 @@ public class DiaryService {
      * 3. 로컬에 일기 없음 + 서버에 일기 있음 → 서버 데이터 유지
      */
     @Transactional
-    public DiarySyncResponse syncDiaries(String authHeader, DiarySyncRequest request) {
-        // 1. JWT 토큰에서 userId 추출
-        Long userId = jwtService.getUserIdFromAuthHeader(authHeader);
+    public void syncDiariesWithProgress(String authHeader, DiarySyncRequest request, SseEmitter emitter) {
+        try {
+            // 1. JWT 토큰에서 userId 추출
+            Long userId = jwtService.getUserIdFromAuthHeader(authHeader);
 
-        // 2. 유저 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다"));
+            // 2. 유저 조회
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다"));
 
-        int createdCount = 0;
-        int updatedCount = 0;
+            int total = request.getLocalDiaries().size();
+            int createdCount = 0;
+            int updatedCount = 0;
 
-        // 3. 로컬 일기들을 순회하며 동기화
-        for (DiarySyncRequest.LocalDiary localDiary : request.getLocalDiaries()) {
-            // 감정 조회
-            Emotion emotion = emotionRepository.findById(localDiary.getEmotionId())
-                    .orElseThrow(() -> new IllegalArgumentException("감정을 찾을 수 없습니다: " + localDiary.getEmotionId()));
+            // 시작 이벤트 전송
+            sendProgress(emitter, SyncProgressEvent.progress(0, total, "동기화 시작"));
 
-            // 서버에 같은 날짜의 일기가 있는지 확인
-            Optional<Diary> existingDiary = diaryRepository.findByUserAndDate(user, localDiary.getDate());
+            // 3. 로컬 일기들을 순회하며 동기화
+            for (int i = 0; i < request.getLocalDiaries().size(); i++) {
+                DiarySyncRequest.LocalDiary localDiary = request.getLocalDiaries().get(i);
 
-            if (existingDiary.isPresent()) {
-                // 서버에 일기 존재 → 로컬 데이터로 덮어쓰기
-                Diary diary = existingDiary.get();
-                diary.updateTitle(localDiary.getTitle());
-                diary.updateContent(localDiary.getContent());
-                diary.updateEmotion(emotion);
-                updatedCount++;
-                log.info("일기 업데이트: userId={}, date={}", userId, localDiary.getDate());
-            } else {
-                // 서버에 일기 없음 → 새로 생성
-                Diary newDiary = Diary.builder()
-                        .title(localDiary.getTitle())
-                        .content(localDiary.getContent())
-                        .date(localDiary.getDate())
-                        .user(user)
-                        .emotion(emotion)
-                        .build();
-                diaryRepository.save(newDiary);
-                createdCount++;
-                log.info("일기 생성: userId={}, date={}", userId, localDiary.getDate());
+                // 감정 조회
+                Emotion emotion = emotionRepository.findById(localDiary.getEmotionId())
+                        .orElseThrow(() -> new IllegalArgumentException("감정을 찾을 수 없습니다: " + localDiary.getEmotionId()));
+
+                // 서버에 같은 날짜의 일기가 있는지 확인
+                Optional<Diary> existingDiary = diaryRepository.findByUserAndDate(user, localDiary.getDate());
+
+                if (existingDiary.isPresent()) {
+                    // 서버에 일기 존재 → 로컬 데이터로 덮어쓰기
+                    Diary diary = existingDiary.get();
+                    diary.updateTitle(localDiary.getTitle());
+                    diary.updateContent(localDiary.getContent());
+                    diary.updateEmotion(emotion);
+                    updatedCount++;
+                    log.info("일기 업데이트: userId={}, date={}", userId, localDiary.getDate());
+                } else {
+                    // 서버에 일기 없음 → 새로 생성
+                    Diary newDiary = Diary.builder()
+                            .title(localDiary.getTitle())
+                            .content(localDiary.getContent())
+                            .date(localDiary.getDate())
+                            .user(user)
+                            .emotion(emotion)
+                            .build();
+                    diaryRepository.save(newDiary);
+                    createdCount++;
+                    log.info("일기 생성: userId={}, date={}", userId, localDiary.getDate());
+                }
+
+                // 진행률 전송
+                int current = i + 1;
+                String message = String.format("%d/%d 처리 완료", current, total);
+                sendProgress(emitter, SyncProgressEvent.progress(current, total, message));
+
+                // 약간의 지연 (선택사항, 진행률을 더 잘 볼 수 있게)
+                Thread.sleep(100);
+            }
+
+            // 4. 동기화 후 서버의 모든 일기 조회
+            List<Diary> allDiaries = diaryRepository.findByUserOrderByDateDesc(user);
+            List<DiaryResponse> diaryResponses = allDiaries.stream()
+                    .map(DiaryResponse::from)
+                    .collect(Collectors.toList());
+
+            int syncedCount = createdCount + updatedCount;
+            DiarySyncResponse result = new DiarySyncResponse(syncedCount, createdCount, updatedCount, diaryResponses);
+
+            log.info("동기화 완료: userId={}, created={}, updated={}, total={}",
+                    userId, createdCount, updatedCount, syncedCount);
+
+            // 완료 이벤트 전송
+            sendProgress(emitter, SyncProgressEvent.completed(result));
+            emitter.complete();
+
+        } catch (Exception e) {
+            log.error("동기화 실패: {}", e.getMessage(), e);
+            try {
+                sendProgress(emitter, SyncProgressEvent.error(e.getMessage()));
+                emitter.completeWithError(e);
+            } catch (IOException ioException) {
+                log.error("에러 전송 실패", ioException);
             }
         }
+    }
 
-        // 4. 동기화 후 서버의 모든 일기 조회
-        List<Diary> allDiaries = diaryRepository.findByUserOrderByDateDesc(user);
-        List<DiaryResponse> diaryResponses = allDiaries.stream()
-                .map(DiaryResponse::from)
-                .collect(Collectors.toList());
-
-        int syncedCount = createdCount + updatedCount;
-        log.info("동기화 완료: userId={}, created={}, updated={}, total={}",
-                userId, createdCount, updatedCount, syncedCount);
-
-        return new DiarySyncResponse(syncedCount, createdCount, updatedCount, diaryResponses);
+    private void sendProgress(SseEmitter emitter, SyncProgressEvent event) throws IOException {
+        emitter.send(SseEmitter.event()
+                .name("sync-progress")
+                .data(event));
     }
 }
