@@ -106,14 +106,13 @@ public class AuthController {
 
     /**
      * 토큰 갱신
-     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     * Request Body로 refreshToken을 받아서 새로운 토큰 발급
      *
      * POST /api/auth/token/refresh
-     * Header: Authorization: Bearer {accessToken}
+     * Body: { "refreshToken": "..." }
      */
     @PostMapping("/token/refresh")
     public ResponseEntity<TokenRefreshResponse> refreshToken(
-        @RequestHeader("Authorization") String authHeader,
         @RequestBody TokenRefreshRequest request
     ) {
         TokenRefreshResponse response = authService.refreshToken(request);
@@ -122,17 +121,16 @@ public class AuthController {
 
     /**
      * 토큰 검증
-     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     * Request Body로 accessToken을 받아서 검증
      *
      * POST /api/auth/token/verify
-     * Header: Authorization: Bearer {accessToken}
+     * Body: { "accessToken": "..." }
      */
     @PostMapping("/token/verify")
     public ResponseEntity<TokenVerifyResponse> verifyToken(
-        @RequestHeader("Authorization") String authHeader,
         @RequestBody TokenVerifyRequest request
     ) {
-        TokenVerifyResponse response = authService.verifyToken(request);
+        TokenVerifyResponse response = authService.verifyToken(request.getAccessToken());
         return ResponseEntity.ok(response);
     }
 }

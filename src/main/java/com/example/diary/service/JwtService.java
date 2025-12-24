@@ -71,7 +71,7 @@ public class JwtService {
     }
 
     /**
-     * JWT 토큰의 남은 유효 시간(초) 반환
+     * JWT 토큰의 남은 유효 시간(초) 반환 (Authorization 헤더 형식)
      */
     public Long getRemainingSeconds(String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -79,7 +79,13 @@ public class JwtService {
         }
 
         String token = authHeader.substring(7);  // "Bearer " 제거
+        return getRemainingSecondsFromToken(token);
+    }
 
+    /**
+     * JWT 토큰의 남은 유효 시간(초) 반환 (토큰 직접 입력)
+     */
+    public Long getRemainingSecondsFromToken(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(secretKey)
                 .parseClaimsJws(token)

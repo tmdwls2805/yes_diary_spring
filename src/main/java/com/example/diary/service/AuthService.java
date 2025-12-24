@@ -271,20 +271,22 @@ public class AuthService {
 
     /**
      * 토큰 검증
-     * Authorization 헤더에서 JWT 토큰으로 현재 로그인한 유저 식별
+     * accessToken을 받아서 검증
      */
     @Transactional
-    public TokenVerifyResponse verifyToken(String authHeader) {
+    public TokenVerifyResponse verifyToken(String accessToken) {
         try {
             // 1. JWT 토큰에서 userId 추출
-            Long userId = jwtService.getUserIdFromAuthHeader(authHeader);
+            Long userId = jwtService.getUserIdFromToken(accessToken);
 
             // 2. 유저 확인
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다"));
 
-            // 3. 토큰 검증
-            return new TokenVerifyResponse(true, userId, jwtService.getRemainingSeconds(authHeader));
+            // 3. 토큰 검증 및 남은 시간 계산
+            Integer remainingSeconds = jwtService.getRemainingSecondsFromToken(accessToken).intValue();
+
+            return new TokenVerifyResponse(true, userId, remainingSeconds);
         } catch (Exception e) {
             log.error("Access Token 검증 실패: {}", e.getMessage());
             throw new IllegalArgumentException("Access Token 검증 실패");
