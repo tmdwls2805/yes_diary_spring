@@ -79,4 +79,22 @@ public class DiaryController {
         diaryService.deleteDiary(authHeader, id);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 로컬 일기 동기화
+     * POST /api/diaries/sync
+     * Header: Authorization: Bearer {accessToken}
+     *
+     * 로그인 시 로컬에 저장된 일기들을 서버와 동기화
+     * - 로컬에 일기 있음 + 서버에 같은 날짜 일기 있음 → 로컬 데이터로 서버 덮어쓰기
+     * - 로컬에 일기 있음 + 서버에 해당 날짜 일기 없음 → 로컬 데이터를 서버에 새로 생성
+     * - 동기화 후 서버의 모든 일기를 반환 (클라이언트는 이를 로컬 DB에 저장)
+     */
+    @PostMapping("/sync")
+    public ResponseEntity<DiarySyncResponse> syncDiaries(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody DiarySyncRequest request) {
+        DiarySyncResponse response = diaryService.syncDiaries(authHeader, request);
+        return ResponseEntity.ok(response);
+    }
 }
