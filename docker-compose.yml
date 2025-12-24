@@ -5,6 +5,9 @@ services:
   mysql:
     image: mysql:8.0
     container_name: diary-mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: diary_db
@@ -31,7 +34,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/diary_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/diary_db?characterEncoding=UTF-8&useUnicode=true
       SPRING_DATASOURCE_USERNAME: diary_user
       SPRING_DATASOURCE_PASSWORD: diary_password
     depends_on:

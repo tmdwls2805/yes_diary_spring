@@ -3,7 +3,7 @@ spring:
     name: yes-diary-spring
 
   datasource:
-    url: jdbc:mysql://localhost:3306/diary_db
+    url: jdbc:mysql://localhost:3306/diary_db?characterEncoding=UTF-8&useUnicode=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: diary_user
     password: diary_password

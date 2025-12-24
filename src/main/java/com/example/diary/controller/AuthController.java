@@ -23,9 +23,7 @@ public class AuthController {
      * POST /api/auth/kakao/check
      */
     @PostMapping("/kakao/check")
-    public ResponseEntity<KakaoLoginCheckResponse> checkKakaoUser(
-            @RequestBody KakaoLoginCheckRequest request) {
-
+    public ResponseEntity<KakaoLoginCheckResponse> checkKakaoUser(@RequestBody KakaoLoginCheckRequest request) {
         KakaoLoginCheckResponse response = authService.checkKakaoUser(request);
         return ResponseEntity.ok(response);
     }
