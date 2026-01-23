@@ -37,6 +37,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/diary_db?characterEncoding=UTF-8&useUnicode=true
       SPRING_DATASOURCE_USERNAME: diary_user
       SPRING_DATASOURCE_PASSWORD: diary_password
+    volumes:
+      - ./src:/app/src
+      - ./build:/app/build
+      - gradle-cache:/root/.gradle
+    command: gradle bootRun --no-daemon
     depends_on:
       mysql:
         condition: service_healthy
@@ -45,6 +50,7 @@ services:
 
 volumes:
   mysql-data:
+  gradle-cache:
 
 networks:
   diary-network:

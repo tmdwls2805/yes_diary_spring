@@ -3,6 +3,7 @@ package com.example.diary.controller;
 import com.example.diary.dto.*;
 import com.example.diary.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,9 +24,9 @@ public class AuthController {
      * POST /api/auth/kakao/check
      */
     @PostMapping("/kakao/check")
-    public ResponseEntity<KakaoLoginCheckResponse> checkKakaoUser(@RequestBody KakaoLoginCheckRequest request) {
+    public ResponseEntity<ApiResponse<KakaoLoginCheckResponse>> checkKakaoUser(@RequestBody KakaoLoginCheckRequest request) {
         KakaoLoginCheckResponse response = authService.checkKakaoUser(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "카카오 유저 체크 완료", response));
     }
 
     /**
@@ -34,11 +35,11 @@ public class AuthController {
      * POST /api/auth/kakao/register
      */
     @PostMapping("/kakao/register")
-    public ResponseEntity<TokenResponse> registerKakaoUser(
+    public ResponseEntity<ApiResponse<TokenResponse>> registerKakaoUser(
             @RequestBody KakaoRegisterRequest request) {
 
         TokenResponse response = authService.registerAndLoginKakaoUser(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "카카오 회원가입 및 로그인 완료", response));
     }
 
     // ========== Apple Login ==========
@@ -51,11 +52,11 @@ public class AuthController {
      * POST /api/auth/apple/check
      */
     @PostMapping("/apple/check")
-    public ResponseEntity<AppleLoginCheckResponse> checkAppleUser(
+    public ResponseEntity<ApiResponse<AppleLoginCheckResponse>> checkAppleUser(
             @RequestBody AppleLoginCheckRequest request) {
 
         AppleLoginCheckResponse response = authService.checkAppleUser(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "애플 유저 체크 완료", response));
     }
 
     /**
@@ -64,11 +65,11 @@ public class AuthController {
      * POST /api/auth/apple/register
      */
     @PostMapping("/apple/register")
-    public ResponseEntity<TokenResponse> registerAppleUser(
+    public ResponseEntity<ApiResponse<TokenResponse>> registerAppleUser(
             @RequestBody AppleRegisterRequest request) {
 
         TokenResponse response = authService.registerAndLoginAppleUser(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "애플 회원가입 및 로그인 완료", response));
     }
 
     /**
@@ -79,12 +80,12 @@ public class AuthController {
      * Header: Authorization: Bearer {accessToken}
      */
     @PostMapping("/fcm")
-    public ResponseEntity<FcmTokenResponse> updateFcmToken(
+    public ResponseEntity<ApiResponse<FcmTokenResponse>> updateFcmToken(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody FcmTokenRequest request) {
 
         FcmTokenResponse response = authService.updateFcmToken(authHeader, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "FCM 토큰 업데이트 완료", response));
     }
 
     /**
@@ -95,11 +96,11 @@ public class AuthController {
      * Header: Authorization: Bearer {accessToken}
      */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(
-        @RequestHeader("Authorization") String authHeader   
+    public ResponseEntity<ApiResponse<Object>> logout(
+        @RequestHeader("Authorization") String authHeader
     ) {
         authService.logout(authHeader);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new ApiResponse<>(200, "로그아웃 완료", null));
     }
 
     /**
@@ -110,11 +111,11 @@ public class AuthController {
      * Body: { "refreshToken": "..." }
      */
     @PostMapping("/token/refresh")
-    public ResponseEntity<TokenRefreshResponse> refreshToken(
+    public ResponseEntity<ApiResponse<TokenRefreshResponse>> refreshToken(
         @RequestBody TokenRefreshRequest request
     ) {
         TokenRefreshResponse response = authService.refreshToken(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "토큰 갱신 완료", response));
     }
 
     /**
@@ -125,10 +126,10 @@ public class AuthController {
      * Body: { "accessToken": "..." }
      */
     @PostMapping("/token/verify")
-    public ResponseEntity<TokenVerifyResponse> verifyToken(
+    public ResponseEntity<ApiResponse<TokenVerifyResponse>> verifyToken(
         @RequestBody TokenVerifyRequest request
     ) {
         TokenVerifyResponse response = authService.verifyToken(request.getAccessToken());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "토큰 검증 완료", response));
     }
 }

@@ -25,11 +25,11 @@ public class DiaryController {
      * Header: Authorization: Bearer {accessToken}
      */
     @PostMapping
-    public ResponseEntity<DiaryResponse> createDiary(
+    public ResponseEntity<ApiResponse<DiaryResponse>> createDiary(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody DiaryCreateRequest request) {
         DiaryResponse response = diaryService.createDiary(authHeader, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "일기 생성 완료", response));
     }
 
     /**
@@ -38,11 +38,11 @@ public class DiaryController {
      * Header: Authorization: Bearer {accessToken}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<DiaryResponse> getDiary(
+    public ResponseEntity<ApiResponse<DiaryResponse>> getDiary(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable Long id) {
         DiaryResponse response = diaryService.getDiary(authHeader, id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "일기 조회 완료", response));
     }
 
     /**
@@ -51,12 +51,12 @@ public class DiaryController {
      * Header: Authorization: Bearer {accessToken}
      */
     @GetMapping("/monthly")
-    public ResponseEntity<DiaryListResponse> getMonthlyDiaries(
+    public ResponseEntity<ApiResponse<DiaryListResponse>> getMonthlyDiaries(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam Integer year,
             @RequestParam Integer month) {
         DiaryListResponse response = diaryService.getMonthlyDiaries(authHeader, year, month);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "월별 일기 조회 완료", response));
     }
 
     /**
@@ -65,12 +65,12 @@ public class DiaryController {
      * Header: Authorization: Bearer {accessToken}
      */
     @PutMapping("/{id}")
-    public ResponseEntity<DiaryResponse> updateDiary(
+    public ResponseEntity<ApiResponse<DiaryResponse>> updateDiary(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable Long id,
             @RequestBody DiaryUpdateRequest request) {
         DiaryResponse response = diaryService.updateDiary(authHeader, id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(200, "일기 수정 완료", response));
     }
 
     /**
@@ -79,11 +79,11 @@ public class DiaryController {
      * Header: Authorization: Bearer {accessToken}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDiary(
+    public ResponseEntity<ApiResponse<Object>> deleteDiary(
             @RequestHeader("Authorization") String authHeader,
             @PathVariable Long id) {
         diaryService.deleteDiary(authHeader, id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new ApiResponse<>(200, "일기 삭제 완료", null));
     }
 
     /**
