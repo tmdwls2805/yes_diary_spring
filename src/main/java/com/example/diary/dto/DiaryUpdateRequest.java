@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class DiaryUpdateRequest {
-    private String title;
     private String content;
     private Long emotionId;
 }

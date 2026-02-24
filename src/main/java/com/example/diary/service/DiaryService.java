@@ -56,7 +56,6 @@ public class DiaryService {
 
         // 5. 일기 생성
         Diary diary = Diary.builder()
-                .title(request.getTitle())
                 .content(request.getContent())
                 .date(request.getDate())
                 .user(user)
@@ -145,9 +144,6 @@ public class DiaryService {
         }
 
         // 5. 일기 수정
-        if (request.getTitle() != null) {
-            diary.updateTitle(request.getTitle());
-        }
         if (request.getContent() != null) {
             diary.updateContent(request.getContent());
         }
@@ -246,7 +242,6 @@ public class DiaryService {
 
                     // 로컬이 더 최신이면 서버 업데이트
                     if (localUpdatedAt.isAfter(serverUpdatedAt)) {
-                        serverDiary.updateTitle(localDiary.getTitle());
                         serverDiary.updateContent(localDiary.getContent());
                         serverDiary.updateEmotion(emotion);
                         updatedCount++;
@@ -261,7 +256,6 @@ public class DiaryService {
                 } else {
                     // 서버에 일기 없음 → 새로 생성
                     Diary newDiary = Diary.builder()
-                            .title(localDiary.getTitle())
                             .content(localDiary.getContent())
                             .date(localDiary.getDate())
                             .user(user)

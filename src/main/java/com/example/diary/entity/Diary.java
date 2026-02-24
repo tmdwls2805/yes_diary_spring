@@ -29,9 +29,6 @@ public class Diary extends Base {
     @Column(nullable = false)
     private LocalDate date;  // LocalDateTime이 아닌 LocalDate 사용 (날짜만)
 
-    @Column(nullable = false, length = 100)
-    private String title;
-
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
@@ -44,17 +41,12 @@ public class Diary extends Base {
     private Emotion emotion;
 
     @Builder
-    public Diary(LocalDate date, String title, String content, User user, Emotion emotion) {
+    public Diary(LocalDate date, String content, User user, Emotion emotion) {
         super();
         this.date = date;
-        this.title = title;
         this.content = content;
         this.user = user;
         this.emotion = emotion;
-    }
-
-    public void updateTitle(String title) {
-        this.title = title;
     }
 
     public void updateContent(String content) {

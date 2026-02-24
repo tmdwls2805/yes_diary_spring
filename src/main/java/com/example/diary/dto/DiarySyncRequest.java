@@ -16,7 +16,6 @@ public class DiarySyncRequest {
     @NoArgsConstructor
     public static class LocalDiary {
         private Long localId;        // 로컬 DB의 ID (서버는 무시)
-        private String title;
         private String content;
         private Long emotionId;
         private LocalDate date;

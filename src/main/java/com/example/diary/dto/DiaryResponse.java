@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class DiaryResponse {
     private Long id;
-    private String title;
     private String content;
     private EmotionInfo emotionInfo;
     private LocalDate date;
@@ -30,7 +29,6 @@ public class DiaryResponse {
     public static DiaryResponse from(Diary diary) {
         return new DiaryResponse(
             diary.getId(),
-            diary.getTitle(),
             diary.getContent(),
             new EmotionInfo(
                 diary.getEmotion().getId(),
