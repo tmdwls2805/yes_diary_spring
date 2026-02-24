@@ -8,4 +8,5 @@ import lombok.NoArgsConstructor;
 public class AppleRegisterRequest {
     private String identityToken;  // Apple ID Token
     private String nickname;
+    private String password;  // PIN 번호 (4자리 숫자, optional)
 }

@@ -31,13 +31,17 @@ public class User extends Base {
     @Column()
     private String fcmToken;
 
+    @Column(length = 100)
+    private String password;  // PIN 번호 (4자리 숫자, 암호화 저장, nullable)
+
     @Builder
-    public User(String nickname, SocialProvider provider, String socialId, String fcmToken) {
+    public User(String nickname, SocialProvider provider, String socialId, String fcmToken, String password) {
         super();
         this.nickname = nickname;
         this.provider = provider;
         this.socialId = socialId;
         this.fcmToken = fcmToken;
+        this.password = password;
     }
 
     public void updateNickname(String nickname) {
@@ -46,6 +50,10 @@ public class User extends Base {
 
     public void updateFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
     }
 
 }

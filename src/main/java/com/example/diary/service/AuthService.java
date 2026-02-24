@@ -6,6 +6,7 @@ import com.example.diary.entity.User;
 import com.example.diary.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ public class AuthService {
     private final KakaoApiService kakaoApiService;
     private final AppleApiService appleApiService;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 카카오 유저 체크 (기존/신규 구분)
@@ -93,10 +95,20 @@ public class AuthService {
         }
 
         // 3. User 생성
+        String encryptedPassword = null;
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            // PIN 번호 검증 (4자리 숫자)
+            if (!request.getPassword().matches("\\d{4}")) {
+                throw new IllegalArgumentException("PIN 번호는 4자리 숫자여야 합니다");
+            }
+            encryptedPassword = passwordEncoder.encode(request.getPassword());
+        }
+
         User user = User.builder()
                 .nickname(request.getNickname())
                 .provider(SocialProvider.KAKAO)
                 .socialId(socialId)
+                .password(encryptedPassword)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -184,10 +196,20 @@ public class AuthService {
         }
 
         // 3. User 생성
+        String encryptedPassword = null;
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            // PIN 번호 검증 (4자리 숫자)
+            if (!request.getPassword().matches("\\d{4}")) {
+                throw new IllegalArgumentException("PIN 번호는 4자리 숫자여야 합니다");
+            }
+            encryptedPassword = passwordEncoder.encode(request.getPassword());
+        }
+
         User user = User.builder()
                 .nickname(request.getNickname())
                 .provider(SocialProvider.APPLE)
                 .socialId(appleId)
+                .password(encryptedPassword)
                 .build();
 
         User savedUser = userRepository.save(user);
