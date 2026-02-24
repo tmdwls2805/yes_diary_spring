@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
@@ -15,6 +16,8 @@ public class DiaryResponse {
     private EmotionInfo emotionInfo;
     private LocalDate date;
     private Long userId;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     @Getter
     @AllArgsConstructor
@@ -35,7 +38,9 @@ public class DiaryResponse {
                 diary.getEmotion().getImageUrl()
             ),
             diary.getDate(),
-            diary.getUser().getId()
+            diary.getUser().getId(),
+            diary.getCreatedAt(),
+            diary.getUpdatedAt()
         );
     }
 }

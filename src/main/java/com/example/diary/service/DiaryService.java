@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
@@ -192,10 +193,15 @@ public class DiaryService {
      * 로컬 일기 동기화 (SSE 진행률 포함)
      * 실시간으로 동기화 진행률(%)을 전송
      *
-     * 동기화 규칙:
-     * 1. 로컬에 일기 있음 + 서버에 같은 날짜 일기 있음 → 로컬 데이터로 서버 덮어쓰기
-     * 2. 로컬에 일기 있음 + 서버에 해당 날짜 일기 없음 → 로컬 데이터를 서버에 새로 생성
-     * 3. 로컬에 일기 없음 + 서버에 일기 있음 → 서버 데이터 유지
+     * 동기화 규칙 (충돌 해결 로직 포함):
+     * 1. 로컬에 일기 있음 + 서버에 같은 날짜 일기 있음
+     *    → updatedAt 비교하여 최신 데이터 우선
+     *    - 로컬이 더 최신: 서버 업데이트
+     *    - 서버가 더 최신 또는 동일: 서버 데이터 유지
+     * 2. 로컬에 일기 있음 + 서버에 해당 날짜 일기 없음
+     *    → 로컬 데이터를 서버에 새로 생성
+     * 3. 로컬에 일기 없음 + 서버에 일기 있음
+     *    → 서버 데이터 유지 (allDiaries에 포함되어 반환)
      */
     @Transactional
     public void syncDiariesWithProgress(String authHeader, DiarySyncRequest request, SseEmitter emitter) {
@@ -210,6 +216,7 @@ public class DiaryService {
             int total = request.getLocalDiaries().size();
             int createdCount = 0;
             int updatedCount = 0;
+            int skippedCount = 0;  // 서버가 더 최신이어서 스킵한 개수
 
             // 시작 이벤트 전송
             sendProgress(emitter, SyncProgressEvent.progress(0, total, "동기화 시작"));
@@ -226,13 +233,31 @@ public class DiaryService {
                 Optional<Diary> existingDiary = diaryRepository.findByUserAndDate(user, localDiary.getDate());
 
                 if (existingDiary.isPresent()) {
-                    // 서버에 일기 존재 → 로컬 데이터로 덮어쓰기
-                    Diary diary = existingDiary.get();
-                    diary.updateTitle(localDiary.getTitle());
-                    diary.updateContent(localDiary.getContent());
-                    diary.updateEmotion(emotion);
-                    updatedCount++;
-                    log.info("일기 업데이트: userId={}, date={}", userId, localDiary.getDate());
+                    // 충돌 해결: updatedAt 비교
+                    Diary serverDiary = existingDiary.get();
+                    LocalDateTime localUpdatedAt = localDiary.getUpdatedAt();
+                    LocalDateTime serverUpdatedAt = serverDiary.getUpdatedAt();
+
+                    // updatedAt이 null인 경우 처리 (하위 호환성)
+                    if (localUpdatedAt == null) {
+                        // 로컬에 updatedAt이 없으면 date를 기준으로 처리
+                        localUpdatedAt = localDiary.getDate().atStartOfDay();
+                    }
+
+                    // 로컬이 더 최신이면 서버 업데이트
+                    if (localUpdatedAt.isAfter(serverUpdatedAt)) {
+                        serverDiary.updateTitle(localDiary.getTitle());
+                        serverDiary.updateContent(localDiary.getContent());
+                        serverDiary.updateEmotion(emotion);
+                        updatedCount++;
+                        log.info("일기 업데이트 (로컬 우선): userId={}, date={}, localTime={}, serverTime={}",
+                                userId, localDiary.getDate(), localUpdatedAt, serverUpdatedAt);
+                    } else {
+                        // 서버가 더 최신이거나 동일하면 서버 데이터 유지
+                        skippedCount++;
+                        log.info("일기 스킵 (서버 우선): userId={}, date={}, localTime={}, serverTime={}",
+                                userId, localDiary.getDate(), localUpdatedAt, serverUpdatedAt);
+                    }
                 } else {
                     // 서버에 일기 없음 → 새로 생성
                     Diary newDiary = Diary.builder()
@@ -265,8 +290,8 @@ public class DiaryService {
             int syncedCount = createdCount + updatedCount;
             DiarySyncResponse result = new DiarySyncResponse(syncedCount, createdCount, updatedCount, diaryResponses);
 
-            log.info("동기화 완료: userId={}, created={}, updated={}, total={}",
-                    userId, createdCount, updatedCount, syncedCount);
+            log.info("동기화 완료: userId={}, created={}, updated={}, skipped={}, total={}",
+                    userId, createdCount, updatedCount, skippedCount, syncedCount);
 
             // 완료 이벤트 전송
             sendProgress(emitter, SyncProgressEvent.completed(result));

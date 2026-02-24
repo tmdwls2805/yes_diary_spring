@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -19,5 +20,6 @@ public class DiarySyncRequest {
         private String content;
         private Long emotionId;
         private LocalDate date;
+        private LocalDateTime updatedAt;  // 충돌 해결용 (로컬에서의 마지막 수정 시간)
     }
 }
