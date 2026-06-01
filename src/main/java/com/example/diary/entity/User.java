@@ -34,14 +34,40 @@ public class User extends Base {
     @Column(length = 100)
     private String password;  // PIN 번호 (4자리 숫자, 암호화 저장, nullable)
 
+    @Column(length = 100)
+    private String department;
+
+    @Column(length = 10)
+    private String workStartTime;
+
+    @Column(length = 10)
+    private String workEndTime;
+
+    @Column(length = 50)
+    private String onboardingEmotion;
+
     @Builder
-    public User(String nickname, SocialProvider provider, String socialId, String fcmToken, String password) {
+    public User(
+            String nickname,
+            SocialProvider provider,
+            String socialId,
+            String fcmToken,
+            String password,
+            String department,
+            String workStartTime,
+            String workEndTime,
+            String onboardingEmotion
+    ) {
         super();
         this.nickname = nickname;
         this.provider = provider;
         this.socialId = socialId;
         this.fcmToken = fcmToken;
         this.password = password;
+        this.department = department;
+        this.workStartTime = workStartTime;
+        this.workEndTime = workEndTime;
+        this.onboardingEmotion = onboardingEmotion;
     }
 
     public void updateNickname(String nickname) {
@@ -54,6 +80,18 @@ public class User extends Base {
 
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    public void updateOnboardingProfile(
+            String department,
+            String workStartTime,
+            String workEndTime,
+            String onboardingEmotion
+    ) {
+        this.department = department;
+        this.workStartTime = workStartTime;
+        this.workEndTime = workEndTime;
+        this.onboardingEmotion = onboardingEmotion;
     }
 
 }

@@ -32,5 +32,9 @@ public class KakaoLoginCheckResponse {
         private String provider;
         private String createdAt;
         private String updatedAt;
+        private String department;
+        private String workStartTime;
+        private String workEndTime;
+        private String onboardingEmotion;
     }
 }

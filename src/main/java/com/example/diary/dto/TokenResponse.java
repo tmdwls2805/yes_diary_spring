@@ -16,11 +16,19 @@ public class TokenResponse {
         private Long id;
         private String nickname;
         private String provider;
+        private String department;
+        private String workStartTime;
+        private String workEndTime;
+        private String onboardingEmotion;
 
         public UserInfo(User user) {
             this.id = user.getId();
             this.nickname = user.getNickname();
             this.provider = user.getProvider().name();
+            this.department = user.getDepartment();
+            this.workStartTime = user.getWorkStartTime();
+            this.workEndTime = user.getWorkEndTime();
+            this.onboardingEmotion = user.getOnboardingEmotion();
         }
     }
 }

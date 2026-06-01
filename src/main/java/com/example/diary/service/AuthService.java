@@ -53,7 +53,11 @@ public class AuthService {
                 user.getNickname(),
                 user.getProvider().name(),
                 user.getCreatedAt().toString(),
-                user.getUpdatedAt().toString()
+                user.getUpdatedAt().toString(),
+                user.getDepartment(),
+                user.getWorkStartTime(),
+                user.getWorkEndTime(),
+                user.getOnboardingEmotion()
             );
 
             KakaoLoginCheckResponse.TokenInfo tokenInfo = new KakaoLoginCheckResponse.TokenInfo(
@@ -109,6 +113,10 @@ public class AuthService {
                 .provider(SocialProvider.KAKAO)
                 .socialId(socialId)
                 .password(encryptedPassword)
+                .department(request.getDepartment())
+                .workStartTime(request.getWorkStartTime())
+                .workEndTime(request.getWorkEndTime())
+                .onboardingEmotion(request.getOnboardingEmotion())
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -154,7 +162,11 @@ public class AuthService {
                 user.getNickname(),
                 user.getProvider().name(),
                 user.getCreatedAt().toString(),
-                user.getUpdatedAt().toString()
+                user.getUpdatedAt().toString(),
+                user.getDepartment(),
+                user.getWorkStartTime(),
+                user.getWorkEndTime(),
+                user.getOnboardingEmotion()
             );
 
             AppleLoginCheckResponse.TokenInfo tokenInfo = new AppleLoginCheckResponse.TokenInfo(
@@ -210,6 +222,10 @@ public class AuthService {
                 .provider(SocialProvider.APPLE)
                 .socialId(appleId)
                 .password(encryptedPassword)
+                .department(request.getDepartment())
+                .workStartTime(request.getWorkStartTime())
+                .workEndTime(request.getWorkEndTime())
+                .onboardingEmotion(request.getOnboardingEmotion())
                 .build();
 
         User savedUser = userRepository.save(user);
