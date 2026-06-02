@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class DiaryResponse {
     private Long id;
     private String content;
+    private String cardMessage;
     private EmotionInfo emotionInfo;
     private LocalDate date;
     private Long userId;
@@ -30,6 +31,7 @@ public class DiaryResponse {
         return new DiaryResponse(
             diary.getId(),
             diary.getContent(),
+            diary.getCardMessage(),
             new EmotionInfo(
                 diary.getEmotion().getId(),
                 diary.getEmotion().getName(),

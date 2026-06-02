@@ -32,6 +32,9 @@ public class Diary extends Base {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "card_message", length = 20)
+    private String cardMessage;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -41,10 +44,11 @@ public class Diary extends Base {
     private Emotion emotion;
 
     @Builder
-    public Diary(LocalDate date, String content, User user, Emotion emotion) {
+    public Diary(LocalDate date, String content, String cardMessage, User user, Emotion emotion) {
         super();
         this.date = date;
         this.content = content;
+        this.cardMessage = cardMessage;
         this.user = user;
         this.emotion = emotion;
     }
@@ -55,5 +59,9 @@ public class Diary extends Base {
 
     public void updateEmotion(Emotion emotion) {
         this.emotion = emotion;
+    }
+
+    public void updateCardMessage(String cardMessage) {
+        this.cardMessage = cardMessage;
     }
 }

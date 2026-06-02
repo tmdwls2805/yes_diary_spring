@@ -10,5 +10,6 @@ import java.time.LocalDate;
 public class DiaryCreateRequest {
     private String content;
     private Long emotionId;
+    private String cardMessage;
     private LocalDate date;
 }

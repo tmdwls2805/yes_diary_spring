@@ -57,6 +57,7 @@ public class DiaryService {
         // 5. 일기 생성
         Diary diary = Diary.builder()
                 .content(request.getContent())
+                .cardMessage(request.getCardMessage())
                 .date(request.getDate())
                 .user(user)
                 .emotion(emotion)
@@ -152,6 +153,9 @@ public class DiaryService {
                     .orElseThrow(() -> new IllegalArgumentException("감정을 찾을 수 없습니다"));
             diary.updateEmotion(emotion);
         }
+        if (request.getCardMessage() != null) {
+            diary.updateCardMessage(request.getCardMessage());
+        }
 
         log.info("일기 수정 완료: userId={}, diaryId={}", userId, diaryId);
 
@@ -244,6 +248,7 @@ public class DiaryService {
                     if (localUpdatedAt.isAfter(serverUpdatedAt)) {
                         serverDiary.updateContent(localDiary.getContent());
                         serverDiary.updateEmotion(emotion);
+                        serverDiary.updateCardMessage(localDiary.getCardMessage());
                         updatedCount++;
                         log.info("일기 업데이트 (로컬 우선): userId={}, date={}, localTime={}, serverTime={}",
                                 userId, localDiary.getDate(), localUpdatedAt, serverUpdatedAt);
@@ -257,6 +262,7 @@ public class DiaryService {
                     // 서버에 일기 없음 → 새로 생성
                     Diary newDiary = Diary.builder()
                             .content(localDiary.getContent())
+                            .cardMessage(localDiary.getCardMessage())
                             .date(localDiary.getDate())
                             .user(user)
                             .emotion(emotion)

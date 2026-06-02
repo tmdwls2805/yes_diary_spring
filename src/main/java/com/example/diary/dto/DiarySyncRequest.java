@@ -18,6 +18,7 @@ public class DiarySyncRequest {
         private Long localId;        // 로컬 DB의 ID (서버는 무시)
         private String content;
         private Long emotionId;
+        private String cardMessage;
         private LocalDate date;
         private LocalDateTime updatedAt;  // 충돌 해결용 (로컬에서의 마지막 수정 시간)
     }

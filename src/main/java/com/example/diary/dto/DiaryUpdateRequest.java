@@ -8,4 +8,5 @@ import lombok.NoArgsConstructor;
 public class DiaryUpdateRequest {
     private String content;
     private Long emotionId;
+    private String cardMessage;
 }
